@@ -1,0 +1,572 @@
+{
+ "info": {
+  "name": "Harbor Market - Firebase REST",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "variable": [
+  {
+   "key": "apiKey",
+   "value": "YOUR_WEB_API_KEY"
+  },
+  {
+   "key": "projectId",
+   "value": "YOUR_PROJECT_ID"
+  },
+  {
+   "key": "email",
+   "value": "admin@shop.com"
+  },
+  {
+   "key": "password",
+   "value": "secret123"
+  },
+  {
+   "key": "idToken",
+   "value": ""
+  },
+  {
+   "key": "uid",
+   "value": ""
+  }
+ ],
+ "item": [
+  {
+   "name": "1. Auth",
+   "item": [
+    {
+     "name": "Sign up (admin or customer)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={{apiKey}}",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"returnSecureToken\": true\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "const j=pm.response.json();",
+         "if(j.idToken){pm.collectionVariables.set('idToken',j.idToken);pm.collectionVariables.set('uid',j.localId);}",
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Sign in",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={{apiKey}}",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"returnSecureToken\": true\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "const j=pm.response.json();",
+         "if(j.idToken){pm.collectionVariables.set('idToken',j.idToken);pm.collectionVariables.set('uid',j.localId);}",
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Reset password (sends email)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={{apiKey}}",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"requestType\": \"PASSWORD_RESET\",\n  \"email\": \"{{email}}\"\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "2. Categories",
+   "item": [
+    {
+     "name": "Create category",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/categories?documentId=C01",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"name\": {\n      \"stringValue\": \"Electronics\"\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "List categories",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/categories"
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "3. Products (admin)",
+   "item": [
+    {
+     "name": "Create product",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/products?documentId=P001",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"catId\": {\n      \"stringValue\": \"C01\"\n    },\n    \"title\": {\n      \"stringValue\": \"Wireless Mouse\"\n    },\n    \"des\": {\n      \"stringValue\": \"Sample product\"\n    },\n    \"qty\": {\n      \"integerValue\": \"120\"\n    },\n    \"price\": {\n      \"integerValue\": \"799\"\n    },\n    \"active\": {\n      \"booleanValue\": true\n    },\n    \"img\": {\n      \"stringValue\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=\"\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Read all (page 1, 8 per page)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents:runQuery",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"structuredQuery\": {\n    \"from\": [\n      {\n        \"collectionId\": \"products\"\n      }\n    ],\n    \"limit\": 9,\n    \"offset\": 0\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Read by category",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents:runQuery",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"structuredQuery\": {\n    \"from\": [\n      {\n        \"collectionId\": \"products\"\n      }\n    ],\n    \"where\": {\n      \"fieldFilter\": {\n        \"field\": {\n          \"fieldPath\": \"catId\"\n        },\n        \"op\": \"EQUAL\",\n        \"value\": {\n          \"stringValue\": \"C01\"\n        }\n      }\n    },\n    \"limit\": 9\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Read individual",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/products/P001"
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Update (not id) - price & qty",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/products/P001?updateMask.fieldPaths=price&updateMask.fieldPaths=qty",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"price\": {\n      \"integerValue\": \"849\"\n    },\n    \"qty\": {\n      \"integerValue\": \"100\"\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Update product image",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/products/P001?updateMask.fieldPaths=img",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"img\": {\n      \"stringValue\": \"data:image/jpeg;base64,<paste base64 here>\"\n    }\n  }\n}"
+      }
+     }
+    },
+    {
+     "name": "Deactivate",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/products/P001?updateMask.fieldPaths=active",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"active\": {\n      \"booleanValue\": false\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Delete",
+     "request": {
+      "method": "DELETE",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/products/P001"
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "4. Customers",
+   "item": [
+    {
+     "name": "Create customer profile (id = uid)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/customers?documentId={{uid}}",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"name\": {\n      \"stringValue\": \"Asha\"\n    },\n    \"email\": {\n      \"stringValue\": \"{{email}}\"\n    },\n    \"mob\": {\n      \"stringValue\": \"9876543210\"\n    },\n    \"creditLimit\": {\n      \"integerValue\": \"0\"\n    },\n    \"creditUsed\": {\n      \"integerValue\": \"0\"\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Admin: set credit limit to 1000",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/customers/{{uid}}?updateMask.fieldPaths=creditLimit",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"creditLimit\": {\n      \"integerValue\": \"1000\"\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "5. Orders",
+   "item": [
+    {
+     "name": "Place order",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents/orders?documentId=ORD001",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"fields\": {\n    \"customerId\": {\n      \"stringValue\": \"{{uid}}\"\n    },\n    \"customerName\": {\n      \"stringValue\": \"Asha\"\n    },\n    \"payment\": {\n      \"stringValue\": \"cash\"\n    },\n    \"total\": {\n      \"integerValue\": \"799\"\n    },\n    \"createdAt\": {\n      \"stringValue\": \"2026-11-21T10:00:00.000Z\"\n    },\n    \"items\": {\n      \"arrayValue\": {\n        \"values\": [\n          {\n            \"mapValue\": {\n              \"fields\": {\n                \"id\": {\n                  \"stringValue\": \"P001\"\n                },\n                \"title\": {\n                  \"stringValue\": \"Wireless Mouse\"\n                },\n                \"catId\": {\n                  \"stringValue\": \"C01\"\n                },\n                \"price\": {\n                  \"integerValue\": \"799\"\n                },\n                \"qty\": {\n                  \"integerValue\": \"1\"\n                },\n                \"amount\": {\n                  \"integerValue\": \"799\"\n                }\n              }\n            }\n          }\n        ]\n      }\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Order history for customer",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{idToken}}"
+       }
+      ],
+      "url": "https://firestore.googleapis.com/v1/projects/{{projectId}}/databases/(default)/documents:runQuery",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"structuredQuery\": {\n    \"from\": [\n      {\n        \"collectionId\": \"orders\"\n      }\n    ],\n    \"where\": {\n      \"fieldFilter\": {\n        \"field\": {\n          \"fieldPath\": \"customerId\"\n        },\n        \"op\": \"EQUAL\",\n        \"value\": {\n          \"stringValue\": \"{{uid}}\"\n        }\n      }\n    }\n  }\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('200 OK',()=>pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
